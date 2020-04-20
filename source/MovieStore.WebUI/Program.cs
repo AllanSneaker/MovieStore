@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using MovieStore.Infrastructure.Persistence.Extensions;
 
 namespace MovieStore.WebUI
 {
@@ -7,7 +8,7 @@ namespace MovieStore.WebUI
 	{
 		public static void Main(string[] args)
 		{
-			CreateHostBuilder(args).Build().Run();
+			CreateHostBuilder(args).Build().MigrateDatabase().Run();
 		}
 
 		public static IHostBuilder CreateHostBuilder(string[] args) =>

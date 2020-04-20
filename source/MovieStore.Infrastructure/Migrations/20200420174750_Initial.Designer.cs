@@ -10,7 +10,7 @@ using MovieStore.Infrastructure.Persistence;
 namespace MovieStore.Infrastructure.Migrations
 {
     [DbContext(typeof(MovieStoreContext))]
-    [Migration("20200420154046_Initial")]
+    [Migration("20200420174750_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -229,7 +229,7 @@ namespace MovieStore.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Genre");
+                    b.ToTable("Genres");
 
                     b.HasData(
                         new
@@ -240,7 +240,12 @@ namespace MovieStore.Infrastructure.Migrations
                         new
                         {
                             Id = 2,
-                            Name = "Humor"
+                            Name = "Comedy"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Action"
                         });
                 });
 
@@ -256,7 +261,7 @@ namespace MovieStore.Infrastructure.Migrations
 
                     b.HasIndex("GenreId");
 
-                    b.ToTable("MovieGenre");
+                    b.ToTable("MovieGenres");
 
                     b.HasData(
                         new

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using MovieStore.Application.Common.Interfaces;
 using MovieStore.Domain.Entities;
+using MovieStore.Domain.Entities.JoinTables;
 using System.Reflection;
 
 namespace MovieStore.Infrastructure.Persistence
@@ -22,5 +23,7 @@ namespace MovieStore.Infrastructure.Persistence
 		}
 
 		public DbSet<Movie> Movies { get; set; }
+		public DbSet<Genre> Genres { get; set; }
+		public DbSet<MovieGenre> MovieGenres { get; set; }
 	}
 }

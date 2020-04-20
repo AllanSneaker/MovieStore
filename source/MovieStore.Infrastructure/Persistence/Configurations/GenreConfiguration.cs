@@ -18,7 +18,12 @@ namespace MovieStore.Infrastructure.Persistence.Configurations
 					new Genre
 					{
 						Id = 2,
-						Name = "Humor"
+						Name = "Comedy"
+					},
+					new Genre
+					{
+						Id = 3,
+						Name = "Action"
 					}
 				);
 		}

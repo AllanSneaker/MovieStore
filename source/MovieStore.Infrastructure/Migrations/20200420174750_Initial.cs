@@ -47,7 +47,7 @@ namespace MovieStore.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Genre",
+                name: "Genres",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -56,7 +56,7 @@ namespace MovieStore.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Genre", x => x.Id);
+                    table.PrimaryKey("PK_Genres", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -188,7 +188,7 @@ namespace MovieStore.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MovieGenre",
+                name: "MovieGenres",
                 columns: table => new
                 {
                     MovieId = table.Column<int>(nullable: false),
@@ -196,15 +196,15 @@ namespace MovieStore.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MovieGenre", x => new { x.MovieId, x.GenreId });
+                    table.PrimaryKey("PK_MovieGenres", x => new { x.MovieId, x.GenreId });
                     table.ForeignKey(
-                        name: "FK_MovieGenre_Genre_GenreId",
+                        name: "FK_MovieGenres_Genres_GenreId",
                         column: x => x.GenreId,
-                        principalTable: "Genre",
+                        principalTable: "Genres",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_MovieGenre_Movies_MovieId",
+                        name: "FK_MovieGenres_Movies_MovieId",
                         column: x => x.MovieId,
                         principalTable: "Movies",
                         principalColumn: "Id",
@@ -212,14 +212,14 @@ namespace MovieStore.Infrastructure.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Genre",
+                table: "Genres",
                 columns: new[] { "Id", "Name" },
-                values: new object[] { 1, "Cartoons" });
-
-            migrationBuilder.InsertData(
-                table: "Genre",
-                columns: new[] { "Id", "Name" },
-                values: new object[] { 2, "Humor" });
+                values: new object[,]
+                {
+                    { 1, "Cartoons" },
+                    { 2, "Comedy" },
+                    { 3, "Action" }
+                });
 
             migrationBuilder.InsertData(
                 table: "Movies",
@@ -227,12 +227,12 @@ namespace MovieStore.Infrastructure.Migrations
                 values: new object[] { 1, "Sandra Bullock", "NBCUniversal_ROW", "The story of Universal Pictures and Illumination Entertainment’s Minions begins at the dawn of time.Starting as single-celled yellow organisms, Minions evolve through the ages, perpetually serving the most despicable of masters.", "Pierre Coffin", new TimeSpan(0, 1, 30, 54, 0), "English", null, new DateTime(2015, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Brian Lynch", "Minions" });
 
             migrationBuilder.InsertData(
-                table: "MovieGenre",
+                table: "MovieGenres",
                 columns: new[] { "MovieId", "GenreId" },
                 values: new object[] { 1, 1 });
 
             migrationBuilder.InsertData(
-                table: "MovieGenre",
+                table: "MovieGenres",
                 columns: new[] { "MovieId", "GenreId" },
                 values: new object[] { 1, 2 });
 
@@ -276,8 +276,8 @@ namespace MovieStore.Infrastructure.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MovieGenre_GenreId",
-                table: "MovieGenre",
+                name: "IX_MovieGenres_GenreId",
+                table: "MovieGenres",
                 column: "GenreId");
         }
 
@@ -299,7 +299,7 @@ namespace MovieStore.Infrastructure.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "MovieGenre");
+                name: "MovieGenres");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -308,7 +308,7 @@ namespace MovieStore.Infrastructure.Migrations
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "Genre");
+                name: "Genres");
 
             migrationBuilder.DropTable(
                 name: "Movies");
