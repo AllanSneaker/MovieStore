@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MovieStore.Application;
 using MovieStore.Infrastructure;
 
 namespace MovieStore.WebUI
@@ -20,6 +21,7 @@ namespace MovieStore.WebUI
 		{
 			services.AddRazorPages();
 			services.AddInfrastructure(Configuration);
+			services.AddApplication();
 		}
 
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
