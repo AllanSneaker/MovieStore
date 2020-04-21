@@ -2,9 +2,11 @@
 using AutoMapper.QueryableExtensions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using MovieStore.Application.Common.Exceptions;
 using MovieStore.Application.Common.Interfaces;
 using MovieStore.Application.Common.Mappings.DTO;
 using MovieStore.Application.Movies.Queries;
+using MovieStore.Domain.Entities;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,11 +22,19 @@ namespace MovieStore.Application.Movies.Handlers
 			_context = context;
 			_mapper = mapper;
 		}
+
 		public async Task<MovieDto> Handle(GetMovieDetailsQuery request, CancellationToken cancellationToken)
 		{
-			return await _context.Movies
+			var dto = await _context.Movies
 				.ProjectTo<MovieDto>(_mapper.ConfigurationProvider)
 				.FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
+
+			if (dto == null)
+			{
+				throw new NotFoundException(nameof(Movie), request.Id);
+			}
+
+			return dto;
 		}
 	}
 }
