@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MovieStore.Application;
 using MovieStore.Infrastructure;
+using MovieStore.WebUI.Configurations.Swagger;
 
 namespace MovieStore.WebUI
 {
@@ -19,9 +20,11 @@ namespace MovieStore.WebUI
 
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services.AddRazorPages();
 			services.AddInfrastructure(Configuration);
 			services.AddApplication();
+			services.AddWebUI(Configuration);
+
+			services.AddRazorPages();
 		}
 
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -30,6 +33,8 @@ namespace MovieStore.WebUI
 			{
 				app.UseDeveloperExceptionPage();
 			}
+
+			app.SettingSwagger(Configuration);
 
 			app.UseRouting();
 

@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace MovieStore.Application
 {
-	public static class DependencyInjection
+	public static class DependencyInjectionInstaller
 	{
 		public static IServiceCollection AddApplication(this IServiceCollection services)
 		{
