@@ -67,27 +67,27 @@ namespace MovieStore.Infrastructure.Migrations
                 name: "Genres",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    GenreID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(nullable: true)
+                    Name = table.Column<string>(maxLength: 25, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Genres", x => x.Id);
+                    table.PrimaryKey("PK_Genres", x => x.GenreID);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Movies",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    MovieID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(nullable: true),
+                    Title = table.Column<string>(maxLength: 40, nullable: false),
                     Description = table.Column<string>(nullable: true),
-                    Duration = table.Column<TimeSpan>(nullable: false),
+                    Duration = table.Column<TimeSpan>(nullable: false, defaultValue: new TimeSpan(0, 0, 0, 0, 0)),
                     ContentOwner = table.Column<string>(nullable: true),
                     ReleaseDate = table.Column<DateTime>(nullable: false),
-                    Language = table.Column<string>(nullable: true),
+                    Language = table.Column<string>(maxLength: 40, nullable: true),
                     Cast = table.Column<string>(nullable: true),
                     Director = table.Column<string>(nullable: true),
                     Producer = table.Column<string>(nullable: true),
@@ -95,7 +95,7 @@ namespace MovieStore.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Movies", x => x.Id);
+                    table.PrimaryKey("PK_Movies", x => x.MovieID);
                 });
 
             migrationBuilder.CreateTable(
@@ -225,29 +225,30 @@ namespace MovieStore.Infrastructure.Migrations
                 name: "MovieGenres",
                 columns: table => new
                 {
-                    MovieId = table.Column<int>(nullable: false),
-                    GenreId = table.Column<int>(nullable: false)
+                    MovieID = table.Column<int>(type: "int", nullable: false),
+                    GenreID = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MovieGenres", x => new { x.MovieId, x.GenreId });
+                    table.PrimaryKey("PK_MovieGenres", x => new { x.MovieID, x.GenreID })
+                        .Annotation("SqlServer:Clustered", false);
                     table.ForeignKey(
-                        name: "FK_MovieGenres_Genres_GenreId",
-                        column: x => x.GenreId,
+                        name: "FK_MovieGenres_Genres",
+                        column: x => x.GenreID,
                         principalTable: "Genres",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "GenreID",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_MovieGenres_Movies_MovieId",
-                        column: x => x.MovieId,
+                        name: "FK_MovieGenres_Movies",
+                        column: x => x.MovieID,
                         principalTable: "Movies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "MovieID",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.InsertData(
                 table: "Genres",
-                columns: new[] { "Id", "Name" },
+                columns: new[] { "GenreID", "Name" },
                 values: new object[,]
                 {
                     { 1, "Cartoons" },
@@ -257,17 +258,17 @@ namespace MovieStore.Infrastructure.Migrations
 
             migrationBuilder.InsertData(
                 table: "Movies",
-                columns: new[] { "Id", "Cast", "ContentOwner", "Description", "Director", "Duration", "Language", "Producer", "ReleaseDate", "Script", "Title" },
+                columns: new[] { "MovieID", "Cast", "ContentOwner", "Description", "Director", "Duration", "Language", "Producer", "ReleaseDate", "Script", "Title" },
                 values: new object[] { 1, "Sandra Bullock", "NBCUniversal_ROW", "The story of Universal Pictures and Illumination Entertainment’s Minions begins at the dawn of time.Starting as single-celled yellow organisms, Minions evolve through the ages, perpetually serving the most despicable of masters.", "Pierre Coffin", new TimeSpan(0, 1, 30, 54, 0), "English", null, new DateTime(2015, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Brian Lynch", "Minions" });
 
             migrationBuilder.InsertData(
                 table: "MovieGenres",
-                columns: new[] { "MovieId", "GenreId" },
+                columns: new[] { "MovieID", "GenreID" },
                 values: new object[] { 1, 1 });
 
             migrationBuilder.InsertData(
                 table: "MovieGenres",
-                columns: new[] { "MovieId", "GenreId" },
+                columns: new[] { "MovieID", "GenreID" },
                 values: new object[] { 1, 2 });
 
             migrationBuilder.CreateIndex(
@@ -321,9 +322,9 @@ namespace MovieStore.Infrastructure.Migrations
                 column: "Expiration");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MovieGenres_GenreId",
+                name: "IX_MovieGenres_GenreID",
                 table: "MovieGenres",
-                column: "GenreId");
+                column: "GenreID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PersistedGrants_Expiration",

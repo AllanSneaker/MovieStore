@@ -9,6 +9,17 @@ namespace MovieStore.Infrastructure.Persistence.Configurations
 	{
 		public void Configure(EntityTypeBuilder<Movie> builder)
 		{
+
+			builder.Property(p => p.Id).HasColumnName("MovieID").HasColumnType("int");
+
+			builder.Property(p => p.Title)
+				.IsRequired()
+				.HasMaxLength(40);
+
+			builder.Property(p => p.Language).HasMaxLength(40);
+
+			builder.Property(p => p.Duration).HasDefaultValue(default(TimeSpan));
+
 			builder.HasData
 				(
 					new Movie

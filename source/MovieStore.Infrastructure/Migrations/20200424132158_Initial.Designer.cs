@@ -10,7 +10,7 @@ using MovieStore.Infrastructure.Persistence;
 namespace MovieStore.Infrastructure.Migrations
 {
     [DbContext(typeof(MovieStoreContext))]
-    [Migration("20200423114917_Initial")]
+    [Migration("20200424132158_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -242,11 +242,14 @@ namespace MovieStore.Infrastructure.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnName("GenreID")
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(25)")
+                        .HasMaxLength(25);
 
                     b.HasKey("Id");
 
@@ -273,12 +276,15 @@ namespace MovieStore.Infrastructure.Migrations
             modelBuilder.Entity("MovieStore.Domain.Entities.JoinTables.MovieGenre", b =>
                 {
                     b.Property<int>("MovieId")
+                        .HasColumnName("MovieID")
                         .HasColumnType("int");
 
                     b.Property<int>("GenreId")
+                        .HasColumnName("GenreID")
                         .HasColumnType("int");
 
-                    b.HasKey("MovieId", "GenreId");
+                    b.HasKey("MovieId", "GenreId")
+                        .HasAnnotation("SqlServer:Clustered", false);
 
                     b.HasIndex("GenreId");
 
@@ -301,6 +307,7 @@ namespace MovieStore.Infrastructure.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnName("MovieID")
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -317,10 +324,13 @@ namespace MovieStore.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("time")
+                        .HasDefaultValue(new TimeSpan(0, 0, 0, 0, 0));
 
                     b.Property<string>("Language")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(40)")
+                        .HasMaxLength(40);
 
                     b.Property<string>("Producer")
                         .HasColumnType("nvarchar(max)");
@@ -332,7 +342,9 @@ namespace MovieStore.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(40)")
+                        .HasMaxLength(40);
 
                     b.HasKey("Id");
 
@@ -475,13 +487,13 @@ namespace MovieStore.Infrastructure.Migrations
                     b.HasOne("MovieStore.Domain.Entities.Genre", "Genre")
                         .WithMany("MovieGenres")
                         .HasForeignKey("GenreId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("FK_MovieGenres_Genres")
                         .IsRequired();
 
                     b.HasOne("MovieStore.Domain.Entities.Movie", "Movie")
                         .WithMany("MovieGenres")
                         .HasForeignKey("MovieId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("FK_MovieGenres_Movies")
                         .IsRequired();
                 });
 #pragma warning restore 612, 618
