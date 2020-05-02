@@ -34,11 +34,11 @@ namespace MovieStore.WebUI
 				app.UseDeveloperExceptionPage();
 			}
 
-			app.UseAuthentication();
-
 			app.SettingSwagger(Configuration);
 
 			app.UseRouting();
+
+			app.UseAuthorization();
 
 			app.UseEndpoints(endpoints =>
 			{
