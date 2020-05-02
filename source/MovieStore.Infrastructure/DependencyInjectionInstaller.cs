@@ -23,6 +23,8 @@ namespace MovieStore.Infrastructure
 			services.AddIdentityServer()
 				.AddApiAuthorization<ApplicationUser, MovieStoreContext>();
 
+			services.AddTransient<IIdentityService, IdentityService>();
+
 			return services;
 		}
 	}
