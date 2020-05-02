@@ -22,7 +22,7 @@ namespace MovieStore.Infrastructure.Identity
 
             return user.UserName;
         }
-        public async Task<(Result Result, string UserId)> CreateUserAsync(string userName, string password)
+        public async Task<(Result Result, string UserId, string UserName)> RegisterUserAsync(string userName, string password)
         {
             var user = new ApplicationUser
             {
@@ -32,7 +32,22 @@ namespace MovieStore.Infrastructure.Identity
 
             var result = await _userManager.CreateAsync(user, password);
 
-            return (result.ToApplicationResult(), user.Id);
+            return (result.ToApplicationResult(), user.Id, user.UserName);
+        }
+
+        public async Task<(Result Result, string UserId, string UserName)> LoginUserAsync(string userName, string password)
+        {
+            var user = await _userManager.FindByEmailAsync(userName);
+
+            if (user == null)
+                return (Result.Failure(new string[] { "User does not exist" }), null, userName);
+
+            var hasValidPassword = await _userManager.CheckPasswordAsync(user, password);
+
+            if (!hasValidPassword)
+                return (Result.Failure(new string[] { "User or password combination is wrong" }), null, userName);
+
+            return (Result.Success(), user.Id, user.UserName);
         }
 
         public async Task<Result> DeleteUserAsync(string userId)
@@ -44,7 +59,7 @@ namespace MovieStore.Infrastructure.Identity
                 return await DeleteUserAsync(user);
             }
 
-            return Result.Success();
+            return Result.Failure(new string[] { "User does not exist" });
         }
 
         public async Task<Result> DeleteUserAsync(ApplicationUser user)
