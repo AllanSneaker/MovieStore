@@ -15,6 +15,8 @@ namespace MovieStore.Application.Common.Models
 
         public string[] Errors { get; set; }
 
+        public AuthTokenResponse AuthTokenResponse { get; set; }
+
         public static Result Success()
         {
             return new Result(true, new string[] { });
