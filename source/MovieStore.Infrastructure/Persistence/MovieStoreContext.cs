@@ -1,6 +1,5 @@
 ﻿using IdentityServer4.EntityFramework.Options;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MovieStore.Application.Common.Interfaces;
@@ -15,15 +14,9 @@ namespace MovieStore.Infrastructure.Persistence
 {
 	public class MovieStoreContext : ApiAuthorizationDbContext<ApplicationUser>, IMovieStoreContext
 	{
-		//public MovieStoreContext(DbContextOptions<MovieStoreContext> options)
-		//	: base(options)
-		//{
-
-		//}
-
 		public MovieStoreContext(
 			DbContextOptions options,
-			IOptions<OperationalStoreOptions> operationalStoreOptions) 
+			IOptions<OperationalStoreOptions> operationalStoreOptions)
 			: base(options, operationalStoreOptions)
 		{
 
@@ -44,5 +37,6 @@ namespace MovieStore.Infrastructure.Persistence
 		public DbSet<Movie> Movies { get; set; }
 		public DbSet<Genre> Genres { get; set; }
 		public DbSet<MovieGenre> MovieGenres { get; set; }
+		public DbSet<RefreshToken> RefreshTokens { get; set; }
 	}
 }

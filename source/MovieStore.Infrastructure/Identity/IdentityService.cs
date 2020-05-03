@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MovieStore.Application.Common.Interfaces;
 using MovieStore.Application.Common.Models;
+using MovieStore.Infrastructure.Persistence;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -15,10 +16,14 @@ namespace MovieStore.Infrastructure.Identity
     public class IdentityService : IIdentityService
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly TokenValidationParameters _tokenValidationParameters;
+        private readonly MovieStoreContext _context;
 
-        public IdentityService(UserManager<ApplicationUser> userManager)
+        public IdentityService(UserManager<ApplicationUser> userManager, TokenValidationParameters tokenValidationParameters, MovieStoreContext context)
         {
             _userManager = userManager;
+            _tokenValidationParameters = tokenValidationParameters;
+            _context = context;
         }
 
         public async Task<string> GetUserNameAsync(string userId)
@@ -27,8 +32,13 @@ namespace MovieStore.Infrastructure.Identity
 
             return user.UserName;
         }
-        public async Task<(Result Result, string UserId, string UserName, AuthTokenResponse authToken)> RegisterUserAsync(string userName, string password, string secret)
+        public async Task<(Result Result, string UserId, string UserName, AuthTokenResponse AuthToken)> RegisterUserAsync(string userName, string password, string secret, TimeSpan tokenLifetime)
         {
+            var existingUser = await _userManager.FindByEmailAsync(userName);
+
+            if (existingUser != null)
+                return (Result.Failure(new[] { "User with this email address already exists" }), null, userName, null);
+
             var user = new ApplicationUser
             {
                 UserName = userName,
@@ -37,12 +47,15 @@ namespace MovieStore.Infrastructure.Identity
 
             var result = await _userManager.CreateAsync(user, password);
 
-            var authToken = GenerateTokenForUser(user.Id, user.UserName, secret);
+            if (!result.Succeeded)
+                return (result.ToApplicationResult(), user.Id, user.UserName, null);
+
+            var authToken = await GenerateTokenForUser(user.Id, user.UserName, secret, tokenLifetime);
 
             return (result.ToApplicationResult(), user.Id, user.UserName, authToken);
         }
 
-        public async Task<(Result Result, string UserId, string UserName, AuthTokenResponse authToken)> LoginUserAsync(string userName, string password, string secret)
+        public async Task<(Result Result, string UserId, string UserName, AuthTokenResponse AuthToken)> LoginUserAsync(string userName, string password, string secret, TimeSpan tokenLifetime)
         {
             var user = await _userManager.FindByEmailAsync(userName);
 
@@ -54,7 +67,7 @@ namespace MovieStore.Infrastructure.Identity
             if (!hasValidPassword)
                 return (Result.Failure(new string[] { "User or password combination is wrong" }), null, userName, null);
 
-            var authToken = GenerateTokenForUser(user.Id, user.UserName, secret);
+            var authToken = await GenerateTokenForUser(user.Id, user.UserName, secret, tokenLifetime);
 
             return (Result.Success(), user.Id, user.UserName, authToken);
         }
@@ -65,20 +78,34 @@ namespace MovieStore.Infrastructure.Identity
 
             if (user != null)
             {
+                await DeleteTokenAsync(user);
                 return await DeleteUserAsync(user);
             }
 
             return Result.Failure(new string[] { "User does not exist" });
         }
 
-        public async Task<Result> DeleteUserAsync(ApplicationUser user)
+        private async Task<Result> DeleteTokenAsync(ApplicationUser user)
+        {
+            var tokens = _context.RefreshTokens.Where(t => t.UserId == user.Id).ToList();
+
+            if (tokens == null)
+                return Result.Success();
+
+            _context.RefreshTokens.RemoveRange(tokens);
+            await _context.SaveChangesAsync();
+
+            return Result.Success();
+        }
+
+        private async Task<Result> DeleteUserAsync(ApplicationUser user)
         {
             var result = await _userManager.DeleteAsync(user);
 
             return result.ToApplicationResult();
         }
 
-        private AuthTokenResponse GenerateTokenForUser(string userId, string userName, string secret)
+        private async Task<AuthTokenResponse> GenerateTokenForUser(string userId, string userName, string secret, TimeSpan tokenLifetime)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(secret);
@@ -91,15 +118,105 @@ namespace MovieStore.Infrastructure.Identity
                     new Claim(JwtRegisteredClaimNames.Email, userName),
                     new Claim("id", userId)
                 }),
-                Expires = DateTime.UtcNow.AddHours(2),
+                Expires = DateTime.UtcNow.Add(tokenLifetime),
                 SigningCredentials =
                     new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            var tokenResponse = new AuthTokenResponse { Token = tokenHandler.WriteToken(token) };
+
+            var refreshToken = new RefreshToken
+            {
+                JwtId = token.Id,
+                UserId = userId,
+                CreationDate = DateTime.UtcNow,
+                ExpiryDate = DateTime.UtcNow.AddMonths(6)
+            };
+
+            await _context.RefreshTokens.AddAsync(refreshToken);
+            await _context.SaveChangesAsync();
+
+            var tokenResponse = new AuthTokenResponse
+            {
+                Token = tokenHandler.WriteToken(token),
+                RefreshToken = refreshToken.Token
+            };
 
             return tokenResponse;
+        }
+
+        public async Task<(Result Result, AuthTokenResponse AuthTokenResponse)> RefreshTokenAsync(string token, string refreshToken, string secret, TimeSpan tokenLifetime)
+        {
+            var validatedToken = GetPrincipalFromToken(token);
+
+            if (validatedToken == null)
+                return (Result.Failure(new[] { "Invalid Token" }), null);
+
+            var expiryDateUnix =
+                long.Parse(validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
+
+            var expiryDateTimeUtc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                .AddSeconds(expiryDateUnix);
+
+            if (expiryDateTimeUtc > DateTime.UtcNow)
+                return (Result.Failure(new[] { "This token hasn't expired yet" }), null);
+
+            var jti = validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
+
+            var storedRefreshToken = await _context.RefreshTokens.SingleOrDefaultAsync(x => x.Token == refreshToken);
+
+            if (storedRefreshToken == null)
+                return (Result.Failure(new[] { "This refresh token does not exist" }), null);
+
+            if (DateTime.UtcNow > storedRefreshToken.ExpiryDate)
+                return (Result.Failure(new[] { "This refresh token has expired" }), null);
+
+            if (storedRefreshToken.Invalidated)
+                return (Result.Failure(new[] { "This refresh token has been invalidated" }), null);
+
+            if (storedRefreshToken.Used)
+                return (Result.Failure(new[] { "This refresh token has been used" }), null);
+
+            if (storedRefreshToken.JwtId != jti)
+                return (Result.Failure(new[] { "This refresh token does not match this JWT" }), null);
+
+            storedRefreshToken.Used = true;
+            _context.RefreshTokens.Update(storedRefreshToken);
+            await _context.SaveChangesAsync();
+
+            var user = await _userManager.FindByIdAsync(validatedToken.Claims.Single(x => x.Type == "id").Value);
+
+            var result = await GenerateTokenForUser(user.Id, user.UserName, secret, tokenLifetime);
+
+            return (Result.Success(), result);
+        }
+
+        private ClaimsPrincipal GetPrincipalFromToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            try
+            {
+                var tokenValidationParameters = _tokenValidationParameters.Clone();
+                tokenValidationParameters.ValidateLifetime = false;
+                var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var validatedToken);
+
+                if (!IsJwtWithValidSecurityAlgorithm(validatedToken))
+                    return null;
+
+                return principal;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private bool IsJwtWithValidSecurityAlgorithm(SecurityToken validatedToken)
+        {
+            return (validatedToken is JwtSecurityToken jwtSecurityToken) &&
+                   jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
+                       StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

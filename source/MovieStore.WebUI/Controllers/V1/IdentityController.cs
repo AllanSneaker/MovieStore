@@ -21,28 +21,42 @@ namespace MovieStore.WebUI.Controllers.V1
 		[HttpPost(ApiRoutes.Identity.Register)]
 		public async Task<IActionResult> Register([FromBody] UserRegistrationRequest request)
 		{
-			var authResponse = await _identityService.RegisterUserAsync(request.UserName, request.Password, _jwtProperties.Secret);
+			var authResponse = await _identityService.RegisterUserAsync(request.UserName, request.Password, _jwtProperties.Secret, _jwtProperties.TokenLifetime);
 
 			if (!authResponse.Result.Succeeded)
 			{
 				return BadRequest(authResponse.Result.Errors);
 			}
 
-			var tokenResponse = authResponse.authToken;
+			var tokenResponse = authResponse.AuthToken;
 			return Ok(tokenResponse);
 		}
 
 		[HttpPost(ApiRoutes.Identity.Login)]
 		public async Task<IActionResult> Login([FromBody] UserLoginRequest request)
 		{
-			var authResponse = await _identityService.LoginUserAsync(request.UserName, request.Password, _jwtProperties.Secret);
+			var authResponse = await _identityService.LoginUserAsync(request.UserName, request.Password, _jwtProperties.Secret, _jwtProperties.TokenLifetime);
 
 			if (!authResponse.Result.Succeeded)
 			{
 				return BadRequest(authResponse.Result.Errors);
 			}
 
-			var tokenResponse = authResponse.authToken;
+			var tokenResponse = authResponse.AuthToken;
+			return Ok(tokenResponse);
+		}
+
+		[HttpPost(ApiRoutes.Identity.Refresh)]
+		public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
+		{
+			var authResponse = await _identityService.RefreshTokenAsync(request.Token, request.RefreshToken, _jwtProperties.Secret, _jwtProperties.TokenLifetime);
+
+			if (!authResponse.Result.Succeeded)
+			{
+				return BadRequest(authResponse.Result.Errors);
+			}
+
+			var tokenResponse = authResponse.AuthTokenResponse;
 			return Ok(tokenResponse);
 		}
 

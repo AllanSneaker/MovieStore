@@ -1,6 +1,6 @@
-﻿namespace MovieStore.Application.Common.Models
+﻿namespace MovieStore.WebUI.Controllers.V1.Requests
 {
-	public class AuthTokenResponse
+	public class RefreshTokenRequest
 	{
 		public string Token { get; set; }
 		public string RefreshToken { get; set; }
