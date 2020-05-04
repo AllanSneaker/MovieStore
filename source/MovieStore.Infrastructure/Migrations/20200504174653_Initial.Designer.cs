@@ -10,7 +10,7 @@ using MovieStore.Infrastructure.Persistence;
 namespace MovieStore.Infrastructure.Migrations
 {
     [DbContext(typeof(MovieStoreContext))]
-    [Migration("20200424132158_Initial")]
+    [Migration("20200504174653_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -431,6 +431,37 @@ namespace MovieStore.Infrastructure.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
+            modelBuilder.Entity("MovieStore.Infrastructure.Identity.RefreshToken", b =>
+                {
+                    b.Property<string>("Token")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Invalidated")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JwtId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Used")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Token");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -495,6 +526,13 @@ namespace MovieStore.Infrastructure.Migrations
                         .HasForeignKey("MovieId")
                         .HasConstraintName("FK_MovieGenres_Movies")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MovieStore.Infrastructure.Identity.RefreshToken", b =>
+                {
+                    b.HasOne("MovieStore.Infrastructure.Identity.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
                 });
 #pragma warning restore 612, 618
         }

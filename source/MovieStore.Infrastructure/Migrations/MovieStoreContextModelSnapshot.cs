@@ -529,9 +529,8 @@ namespace MovieStore.Infrastructure.Migrations
             modelBuilder.Entity("MovieStore.Infrastructure.Identity.RefreshToken", b =>
                 {
                     b.HasOne("MovieStore.Infrastructure.Identity.ApplicationUser", "User")
-                        .WithMany("RefreshToken")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.ClientCascade);
+                        .WithMany()
+                        .HasForeignKey("UserId");
                 });
 #pragma warning restore 612, 618
         }
