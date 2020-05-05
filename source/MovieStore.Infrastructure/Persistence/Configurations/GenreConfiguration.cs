@@ -13,25 +13,6 @@ namespace MovieStore.Infrastructure.Persistence.Configurations
 			builder.Property(p => p.Name)
 				.IsRequired()
 				.HasMaxLength(25);
-
-			builder.HasData
-				(
-					new Genre
-					{
-						Id = 1,
-						Name = "Cartoons"
-					},
-					new Genre
-					{
-						Id = 2,
-						Name = "Comedy"
-					},
-					new Genre
-					{
-						Id = 3,
-						Name = "Action"
-					}
-				);
 		}
 	}
 }

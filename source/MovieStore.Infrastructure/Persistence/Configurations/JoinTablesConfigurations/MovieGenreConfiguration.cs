@@ -26,8 +26,6 @@ namespace MovieStore.Infrastructure.Persistence.Configurations.JoinTablesConfigu
 				.HasForeignKey(d => d.GenreId)
 				.OnDelete(DeleteBehavior.ClientSetNull)
 				.HasConstraintName("FK_MovieGenres_Genres");
-
-			builder.HasData(new MovieGenre { MovieId = 1, GenreId = 1 }, new MovieGenre { MovieId = 1, GenreId = 2 });
 		}
 	}
 }

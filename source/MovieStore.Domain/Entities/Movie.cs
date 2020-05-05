@@ -18,5 +18,10 @@ namespace MovieStore.Domain.Entities
 		public string Producer { get; set; }
 		public string Script { get; set; }
 		public ICollection<MovieGenre> MovieGenres { get; set; }
+
+		public Movie()
+		{
+			MovieGenres = new HashSet<MovieGenre>();
+		}
 	}
 }
