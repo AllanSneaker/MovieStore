@@ -20,22 +20,6 @@ namespace MovieStore.Infrastructure.Persistence.Configurations
 
 			builder.Property(p => p.Duration).HasDefaultValue(default(TimeSpan));
 
-			builder.HasData
-				(
-					new Movie
-					{
-						Id = 1,
-						Title = "Minions",
-						ContentOwner = "NBCUniversal_ROW",
-						ReleaseDate = DateTime.ParseExact("2015", "yyyy", null),
-						Duration = TimeSpan.Parse("1:30:54"),
-						Language = "English",
-						Cast = "Sandra Bullock",
-						Director = "Pierre Coffin",
-						Script = "Brian Lynch",
-						Description = "The story of Universal Pictures and Illumination Entertainment’s Minions begins at the dawn of time.Starting as single-celled yellow organisms, Minions evolve through the ages, perpetually serving the most despicable of masters.",
-					}
-				);
 		}
 	}
 }

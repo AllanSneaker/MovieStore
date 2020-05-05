@@ -1,0 +1,2 @@
+﻿USE MASTER
+DROP DATABASE MovieStoreDb

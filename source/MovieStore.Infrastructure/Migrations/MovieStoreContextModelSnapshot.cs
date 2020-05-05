@@ -252,23 +252,6 @@ namespace MovieStore.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Genres");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Cartoons"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Comedy"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Action"
-                        });
                 });
 
             modelBuilder.Entity("MovieStore.Domain.Entities.JoinTables.MovieGenre", b =>
@@ -287,18 +270,6 @@ namespace MovieStore.Infrastructure.Migrations
                     b.HasIndex("GenreId");
 
                     b.ToTable("MovieGenres");
-
-                    b.HasData(
-                        new
-                        {
-                            MovieId = 1,
-                            GenreId = 1
-                        },
-                        new
-                        {
-                            MovieId = 1,
-                            GenreId = 2
-                        });
                 });
 
             modelBuilder.Entity("MovieStore.Domain.Entities.Movie", b =>
@@ -347,21 +318,6 @@ namespace MovieStore.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Movies");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Cast = "Sandra Bullock",
-                            ContentOwner = "NBCUniversal_ROW",
-                            Description = "The story of Universal Pictures and Illumination Entertainment’s Minions begins at the dawn of time.Starting as single-celled yellow organisms, Minions evolve through the ages, perpetually serving the most despicable of masters.",
-                            Director = "Pierre Coffin",
-                            Duration = new TimeSpan(0, 1, 30, 54, 0),
-                            Language = "English",
-                            ReleaseDate = new DateTime(2015, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Script = "Brian Lynch",
-                            Title = "Minions"
-                        });
                 });
 
             modelBuilder.Entity("MovieStore.Infrastructure.Identity.ApplicationUser", b =>

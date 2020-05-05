@@ -269,31 +269,6 @@ namespace MovieStore.Infrastructure.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.InsertData(
-                table: "Genres",
-                columns: new[] { "GenreID", "Name" },
-                values: new object[,]
-                {
-                    { 1, "Cartoons" },
-                    { 2, "Comedy" },
-                    { 3, "Action" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Movies",
-                columns: new[] { "MovieID", "Cast", "ContentOwner", "Description", "Director", "Duration", "Language", "Producer", "ReleaseDate", "Script", "Title" },
-                values: new object[] { 1, "Sandra Bullock", "NBCUniversal_ROW", "The story of Universal Pictures and Illumination Entertainment’s Minions begins at the dawn of time.Starting as single-celled yellow organisms, Minions evolve through the ages, perpetually serving the most despicable of masters.", "Pierre Coffin", new TimeSpan(0, 1, 30, 54, 0), "English", null, new DateTime(2015, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Brian Lynch", "Minions" });
-
-            migrationBuilder.InsertData(
-                table: "MovieGenres",
-                columns: new[] { "MovieID", "GenreID" },
-                values: new object[] { 1, 1 });
-
-            migrationBuilder.InsertData(
-                table: "MovieGenres",
-                columns: new[] { "MovieID", "GenreID" },
-                values: new object[] { 1, 2 });
-
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",

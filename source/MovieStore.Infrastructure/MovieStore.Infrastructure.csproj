@@ -25,4 +25,9 @@
     <ProjectReference Include="..\MovieStore.Domain\MovieStore.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Persistence\Extensions\" />
+    <Folder Include="SQLCommands\" />
+  </ItemGroup>
+
 </Project>
