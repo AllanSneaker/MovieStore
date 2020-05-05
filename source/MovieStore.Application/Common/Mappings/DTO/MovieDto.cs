@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using MovieStore.Domain.Entities;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MovieStore.Application.Common.Mappings.DTO
 {
@@ -18,9 +20,13 @@ namespace MovieStore.Application.Common.Mappings.DTO
 		public string Producer { get; set; }
 		public string Script { get; set; }
 
+		public IEnumerable<GenreDto> Genres { get; set; }
+
 		public void Mapping(Profile profile)
 		{
-			profile.CreateMap<Movie, MovieDto>();
+			profile.CreateMap<Movie, MovieDto>()
+				.ForMember(dest => dest.Genres, opt => 
+				opt.MapFrom(src => src.MovieGenres.Select(x => new GenreDto { Name = x.Genre.Name })));
 		}
 	}
 }
