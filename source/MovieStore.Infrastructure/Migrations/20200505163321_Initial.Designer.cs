@@ -10,7 +10,7 @@ using MovieStore.Infrastructure.Persistence;
 namespace MovieStore.Infrastructure.Migrations
 {
     [DbContext(typeof(MovieStoreContext))]
-    [Migration("20200504174653_Initial")]
+    [Migration("20200505163321_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
