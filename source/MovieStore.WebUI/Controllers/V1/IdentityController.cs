@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MovieStore.Application.Common.Interfaces;
 using MovieStore.WebUI.Configurations.Jwt;
 using MovieStore.WebUI.Contracts.V1;
@@ -7,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace MovieStore.WebUI.Controllers.V1
 {
+	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 	public class IdentityController : ApiController
 	{
 		private readonly IIdentityService _identityService;
@@ -19,6 +22,7 @@ namespace MovieStore.WebUI.Controllers.V1
 		}
 
 		[HttpPost(ApiRoutes.Identity.Register)]
+		[AllowAnonymous]
 		public async Task<IActionResult> Register([FromBody] UserRegistrationRequest request)
 		{
 			var authResponse = await _identityService.RegisterUserAsync(request.UserName, request.Password, _jwtProperties.Secret, _jwtProperties.TokenLifetime);
@@ -33,6 +37,7 @@ namespace MovieStore.WebUI.Controllers.V1
 		}
 
 		[HttpPost(ApiRoutes.Identity.Login)]
+		[AllowAnonymous]
 		public async Task<IActionResult> Login([FromBody] UserLoginRequest request)
 		{
 			var authResponse = await _identityService.LoginUserAsync(request.UserName, request.Password, _jwtProperties.Secret, _jwtProperties.TokenLifetime);
@@ -46,7 +51,22 @@ namespace MovieStore.WebUI.Controllers.V1
 			return Ok(tokenResponse);
 		}
 
+		[HttpPost(ApiRoutes.Identity.Role)]
+		[Authorize(Roles = "Admin")]
+		public async Task<IActionResult> Role(RoleRequest request)
+		{
+			var response = await _identityService.AddRoleForUser(request.UserName, request.Role);
+
+			if (!response.Result.Succeeded)
+			{
+				return BadRequest(response.Result.Errors);
+			}
+
+			return Ok(response.Result.Succeeded);
+		}
+
 		[HttpPost(ApiRoutes.Identity.Refresh)]
+		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
 		{
 			var authResponse = await _identityService.RefreshTokenAsync(request.Token, request.RefreshToken, _jwtProperties.Secret, _jwtProperties.TokenLifetime);
@@ -60,7 +80,9 @@ namespace MovieStore.WebUI.Controllers.V1
 			return Ok(tokenResponse);
 		}
 
+
 		[HttpDelete(ApiRoutes.Identity.Delete)]
+		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Delete(string id)
 		{
 			var res = await _identityService.DeleteUserAsync(id);

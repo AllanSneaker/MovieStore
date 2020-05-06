@@ -1,4 +1,5 @@
-﻿using MovieStore.Application.Common.Interfaces;
+﻿using Microsoft.AspNetCore.Identity;
+using MovieStore.Application.Common.Interfaces;
 using MovieStore.Domain.Entities;
 using MovieStore.Domain.Entities.JoinTables;
 using System;
@@ -19,6 +20,21 @@ namespace MovieStore.Infrastructure.Persistence
 		{
 			await identity.RegisterUserAsync("admin@localhost", "Xcv1290-", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlJvbWFuIExOYW1lIiwiaWF0IjoxMTEyMTMxNDE1fQ.S76azUYVvw7UBSnwFoHdjJo8o6dzz7xRLKrZzG2O_xI", TimeSpan.Parse("00:00:45"));
 
+		}
+
+		public static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
+		{
+			if (!await roleManager.RoleExistsAsync("Admin"))
+			{
+				var role = new IdentityRole("Admin");
+				await roleManager.CreateAsync(role);
+			}
+
+			if (!await roleManager.RoleExistsAsync("User"))
+			{
+				var role = new IdentityRole("User");
+				await roleManager.CreateAsync(role);
+			}
 		}
 
 		public static async Task SeedAllAsync(IMovieStoreContext context)

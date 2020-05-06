@@ -21,6 +21,7 @@
 			public const string Login = Base + "/identity/login";
 			public const string Delete = Base + "/identity/delete";
 			public const string Refresh = Base + "/identity/refresh";
+			public const string Role = Base + "/identity/role";
 		}
 	}
 }

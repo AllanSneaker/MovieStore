@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -23,9 +24,11 @@ namespace MovieStore.WebUI
                 {
                     var identity = services.GetRequiredService<IIdentityService>();
                     var context = services.GetRequiredService<MovieStoreContext>();
+                    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
                     context.Database.Migrate();
 
                     await MovieStoreContextSeeder.SeedAllAsync(context);
+                    await MovieStoreContextSeeder.SeedRolesAsync(roleManager);
                     //await MovieStoreContextSeeder.SeedDefaultUserAsync(identity);
 
                 }

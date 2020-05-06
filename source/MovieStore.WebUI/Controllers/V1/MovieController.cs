@@ -8,10 +8,12 @@ using System.Threading.Tasks;
 
 namespace MovieStore.WebUI.Controllers.V1
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class MovieController : ApiController
     {
 
         [HttpGet(ApiRoutes.Movies.GetAllMovies)]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> GetAllMovies()
         {
             var query = new GetAllMoviesQuery();
@@ -44,6 +46,7 @@ namespace MovieStore.WebUI.Controllers.V1
         }
 
         [HttpDelete(ApiRoutes.Movies.DeleteMovie)]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteMovie(int id)
         {
             await Mediator.Send(new DeleteMovieCommand { Id = id });

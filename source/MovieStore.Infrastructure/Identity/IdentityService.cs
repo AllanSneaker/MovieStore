@@ -5,6 +5,7 @@ using MovieStore.Application.Common.Interfaces;
 using MovieStore.Application.Common.Models;
 using MovieStore.Infrastructure.Persistence;
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -16,12 +17,16 @@ namespace MovieStore.Infrastructure.Identity
     public class IdentityService : IIdentityService
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly MovieStoreContext _context;
 
-        public IdentityService(UserManager<ApplicationUser> userManager, TokenValidationParameters tokenValidationParameters, MovieStoreContext context)
+        public IdentityService(UserManager<ApplicationUser> userManager, 
+            TokenValidationParameters tokenValidationParameters, MovieStoreContext context,
+            RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _tokenValidationParameters = tokenValidationParameters;
             _context = context;
         }
@@ -50,7 +55,7 @@ namespace MovieStore.Infrastructure.Identity
             if (!result.Succeeded)
                 return (result.ToApplicationResult(), user.Id, user.UserName, null);
 
-            var authToken = await GenerateTokenForUser(user.Id, user.UserName, secret, tokenLifetime);
+            var authToken = await GenerateTokenForUser(user, secret, tokenLifetime);
 
             return (result.ToApplicationResult(), user.Id, user.UserName, authToken);
         }
@@ -67,9 +72,27 @@ namespace MovieStore.Infrastructure.Identity
             if (!hasValidPassword)
                 return (Result.Failure(new string[] { "User or password combination is wrong" }), null, userName, null);
 
-            var authToken = await GenerateTokenForUser(user.Id, user.UserName, secret, tokenLifetime);
+            var authToken = await GenerateTokenForUser(user, secret, tokenLifetime);
 
             return (Result.Success(), user.Id, user.UserName, authToken);
+        }
+
+        public async Task<(Result Result, string UserName)> AddRoleForUser(string userName, string role)
+        {
+            var user = await _userManager.FindByEmailAsync(userName);
+
+            if (user == null)
+                return (Result.Failure(new string[] { "User does not exist" }), userName);
+
+            if(!await _roleManager.RoleExistsAsync(role))
+                return (Result.Failure(new string[] { "Role does not exist" }), null);
+
+            if(await _userManager.IsInRoleAsync(user, role))
+                return (Result.Failure(new string[] { $"The {userName} already has {role}" }), null);
+
+            await _userManager.AddToRoleAsync(user, role);
+
+            return (Result.Success(), userName);
         }
 
         public async Task<Result> DeleteUserAsync(string userId)
@@ -105,22 +128,55 @@ namespace MovieStore.Infrastructure.Identity
             return result.ToApplicationResult();
         }
 
-        private async Task<AuthTokenResponse> GenerateTokenForUser(string userId, string userName, string secret, TimeSpan tokenLifetime)
+        private async Task<AuthTokenResponse> GenerateTokenForUser(ApplicationUser user, string secret, TimeSpan tokenLifetime)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(secret);
+            //var tokenDescriptor = new SecurityTokenDescriptor
+            //{
+            //    Subject = new ClaimsIdentity(new[]
+            //    {
+            //        new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+            //        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            //        new Claim(JwtRegisteredClaimNames.Email, user.UserName),
+            //        new Claim("id", user.Id)
+            //    }),
+            //    Expires = DateTime.UtcNow.Add(tokenLifetime),
+            //    SigningCredentials =
+            //        new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            //};
+
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim("id", user.Id)
+            };
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            foreach (var userRole in userRoles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, userRole));
+                var role = await _roleManager.FindByNameAsync(userRole);
+                if (role == null) continue;
+                var roleClaims = await _roleManager.GetClaimsAsync(role);
+
+                foreach (var roleClaim in roleClaims)
+                {
+                    if (claims.Contains(roleClaim))
+                        continue;
+
+                    claims.Add(roleClaim);
+                }
+            }
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(JwtRegisteredClaimNames.Sub, userName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Email, userName),
-                    new Claim("id", userId)
-                }),
+                Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.Add(tokenLifetime),
                 SigningCredentials =
-                    new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                   new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -128,7 +184,7 @@ namespace MovieStore.Infrastructure.Identity
             var refreshToken = new RefreshToken
             {
                 JwtId = token.Id,
-                UserId = userId,
+                UserId = user.Id,
                 CreationDate = DateTime.UtcNow,
                 ExpiryDate = DateTime.UtcNow.AddMonths(6)
             };
@@ -186,7 +242,7 @@ namespace MovieStore.Infrastructure.Identity
 
             var user = await _userManager.FindByIdAsync(validatedToken.Claims.Single(x => x.Type == "id").Value);
 
-            var result = await GenerateTokenForUser(user.Id, user.UserName, secret, tokenLifetime);
+            var result = await GenerateTokenForUser(user, secret, tokenLifetime);
 
             return (Result.Success(), result);
         }
@@ -218,5 +274,6 @@ namespace MovieStore.Infrastructure.Identity
                    jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
                        StringComparison.InvariantCultureIgnoreCase);
         }
+
     }
 }

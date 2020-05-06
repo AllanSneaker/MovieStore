@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MovieStore.Application.Common.Interfaces;
@@ -18,6 +19,7 @@ namespace MovieStore.Infrastructure
 			services.AddScoped<IMovieStoreContext>(provider => provider.GetService<MovieStoreContext>());
 
 			services.AddDefaultIdentity<ApplicationUser>()
+					.AddRoles<IdentityRole>()
 					.AddEntityFrameworkStores<MovieStoreContext>();
 
 			services.AddIdentityServer()
