@@ -23,5 +23,10 @@
 			public const string Refresh = Base + "/identity/refresh";
 			public const string Role = Base + "/identity/role";
 		}
+
+		public static class Genres
+		{
+			public const string GetAllGenres = Base + "/genres";
+		}
 	}
 }
